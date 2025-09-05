@@ -35,92 +35,154 @@ function App() {
     fetchServices();
   }, []);
 
-  // Handle search
-  const handleSearch = (e) => {
-    e.preventDefault();
-    fetchServices(searchTerm, selectedCategory);
-  };
-
   // Handle real-time search as user types
   useEffect(() => {
     const delayedSearch = setTimeout(() => {
       fetchServices(searchTerm, selectedCategory);
-    }, 300); // Wait 300ms after user stops typing
+    }, 300);
 
     return () => clearTimeout(delayedSearch);
   }, [searchTerm, selectedCategory]);
 
+  // Get initials for profile pic
+  const getInitials = (name) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>Local Services - Redwood City</h1>
+      <div className="App-header">
         
-        {/* Search Form */}
-        <form onSubmit={handleSearch} style={{margin: '20px 0'}}>
-          <input
-            type="text"
-            placeholder="Search services (e.g., 'cuts', 'skincare', 'catering')"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              padding: '10px',
-              fontSize: '16px',
-              width: '300px',
-              marginRight: '10px'
-            }}
-          />
-          
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            style={{
-              padding: '10px',
-              fontSize: '16px',
-              marginRight: '10px'
-            }}
-          >
-            <option value="">All Categories</option>
-            <option value="beauty">Beauty & Cosmetology</option>
-            <option value="wellness">Wellness & Skincare</option>
-            <option value="food">Food Services</option>
-            <option value="floral">Floral & Events</option>
-          </select>
-          
-          <button type="submit" style={{padding: '10px 20px', fontSize: '16px'}}>
-            Search
-          </button>
-        </form>
+        {/* Header */}
+        <div className="header-section">
+          <h1 className="main-title">ServiceSpot</h1>
+          <p className="subtitle">Discover local services in Redwood City</p>
+        </div>
 
-        {loading ? (
-          <p>Loading services...</p>
-        ) : (
-          <div>
-            <h2>Found {services.length} service{services.length !== 1 ? 's' : ''}</h2>
-            {services.length === 0 ? (
-              <p>No services found. Try a different search term.</p>
-            ) : (
-              services.map(service => (
-                <div key={service.id} style={{
-                  border: '1px solid #ccc', 
-                  margin: '10px', 
-                  padding: '15px',
-                  textAlign: 'left',
-                  borderRadius: '8px'
-                }}>
-                  <h3>{service.business_name}</h3>
-                  <p><strong>Owner:</strong> {service.owner_name}</p>
-                  <p><strong>Category:</strong> {service.category}</p>
-                  <p><strong>Instagram:</strong> {service.instagram_handle}</p>
-                  <p><strong>Price Range:</strong> {service.price_range}</p>
-                  <p><strong>Phone:</strong> {service.phone}</p>
-                  <p><strong>Address:</strong> {service.address}</p>
-                  <p>{service.description}</p>
+        {/* Search */}
+        <div className="search-container">
+          <form className="search-form" onSubmit={(e) => e.preventDefault()}>
+            <div className="search-row">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search services..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <select
+                className="category-select"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option value="">All</option>
+                <option value="beauty">Beauty</option>
+                <option value="wellness">Wellness</option>
+                <option value="food">Food</option>
+                <option value="floral">Floral</option>
+              </select>
+            </div>
+          </form>
+        </div>
+
+        {/* Results Stats */}
+        <div className="search-stats">
+          {loading ? (
+            "Searching..."
+          ) : (
+            `${services.length} service${services.length !== 1 ? 's' : ''} found`
+          )}
+        </div>
+
+        {/* Services Feed */}
+        <div className="services-feed">
+          {loading ? (
+            <div className="loading">
+              <div className="loading-spinner"></div>
+              <p>Loading services...</p>
+            </div>
+          ) : services.length === 0 ? (
+            <div className="no-results">
+              <p>No services found</p>
+              <p>Try a different search term</p>
+            </div>
+          ) : (
+            services.map(service => (
+              <div key={service.id} className="service-card">
+                
+                {/* Service Header */}
+                <div className="service-header">
+                  <div className="profile-pic">
+                    {getInitials(service.business_name)}
+                  </div>
+                  <div className="service-info">
+                    <div className="business-name">{service.business_name}</div>
+                    <div className="business-meta">
+                      <span className="category-badge">{service.category}</span>
+                    </div>
+                  </div>
                 </div>
-              ))
-            )}
-          </div>
-        )}
-      </header>
+
+                {/* Service Content */}
+                <div className="service-content">
+                  <p className="description">{service.description}</p>
+                  
+                  <div className="service-details">
+                    <div className="detail-item">
+                      <span className="detail-icon">👤</span>
+                      <span>{service.owner_name}</span>
+                    </div>
+                    
+                    <div className="detail-item">
+                      <span className="detail-icon">💰</span>
+                      <span className="price-range">{service.price_range}</span>
+                    </div>
+                    
+                    {service.instagram_handle && (
+                      <div className="detail-item">
+                        <span className="detail-icon">📷</span>
+                        <a 
+                          href={`https://instagram.com/${service.instagram_handle.replace('@', '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="instagram-handle"
+                        >
+                          {service.instagram_handle}
+                        </a>
+                      </div>
+                    )}
+                    
+                    {service.phone && (
+                      <div className="detail-item">
+                        <span className="detail-icon">📞</span>
+                        <span>{service.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Service Actions */}
+                <div className="service-actions">
+                  <button className="action-btn">
+                    <span>❤️</span>
+                    <span>Like</span>
+                  </button>
+                  
+                  <button className="action-btn">
+                    <span>📤</span>
+                    <span>Share</span>
+                  </button>
+                  
+                  <button className="action-btn primary">
+                    <span>📞</span>
+                    <span>Contact</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }
